@@ -7,10 +7,10 @@ from .manager import sprite_manager
 
 class BaseSprite(EventDispatcher, metaclass=ABCMeta):
 
-    def __init__(self, image=None, size=(100, 100), pos=(0, 0)):
+    def __init__(self, source=None, size=(100, 100), pos=(0, 0)):
         # self._commands = self._get_commands(*args, **kwargs)
         sprite_manager.append(self)
-        self._image = image
+        self._source = source
         self._size = size
         self._pos = pos
 

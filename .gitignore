@@ -130,3 +130,6 @@ dmypy.json
 
 # JetBrains IDEA
 .idea
+
+# VSCode
+.history

@@ -10,5 +10,5 @@ class Sprite(BaseSprite):
     #     self._pos = pos
 
     def get_commands(self):
-        self._sprite = Rectangle(size=self._size, pos=self._pos)
+        self._sprite = Rectangle(source=self._source, size=self._size, pos=self._pos)
         return [self._sprite]
