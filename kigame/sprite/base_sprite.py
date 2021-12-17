@@ -17,6 +17,8 @@ class BaseSprite(EventDispatcher, metaclass=ABCMeta):
         # self._commands = self._get_commands(*args, **kwargs)
         super().__init__()
         sprite_manager.append(self)
+        self._textures = [source]
+        self._current_texture = 0
         self._source = source
         self._size = size
         self._pos = pos
@@ -48,3 +50,14 @@ class BaseSprite(EventDispatcher, metaclass=ABCMeta):
 
     def collide(self, sprite) -> bool:
         pass
+
+    def add_texture(self, source):
+        self._textures.append(source)
+
+    def next_texture(self):
+        self._current_texture += 1
+        if self._current_texture >= len(self._textures):
+            self._current_texture = 0
+
+        self._sprite.source = self._textures[self._current_texture]
+
