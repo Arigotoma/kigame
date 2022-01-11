@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from typing import Union
+from math import pi, atan2
 
 from kivy.core.image import Image
 from kivy.event import EventDispatcher
@@ -208,3 +209,8 @@ class BaseSprite(EventDispatcher, metaclass=ABCMeta):
             self._current_texture = 0
 
         self._sprite.texture = self._textures[self._current_texture]
+
+    def rotate_to(self, pos_object):
+        rel_x = pos_object[0] - self._pos[0]
+        rel_y = pos_object[1] - self._pos[1]
+        self.angle = int((180 / pi) * -atan2(rel_x, rel_y) + 90)
