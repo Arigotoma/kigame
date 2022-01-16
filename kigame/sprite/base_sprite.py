@@ -141,7 +141,7 @@ class BaseSprite(EventDispatcher, metaclass=ABCMeta):
 
     @right.setter
     def right(self, value: Union[int, float]):
-        self._pos((value - self._size[0], self._pos[1]))
+        self._pos = (value - self._size[0], self._pos[1])
 
     @property
     def y(self) -> Union[int, float]:
