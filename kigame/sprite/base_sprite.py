@@ -1,10 +1,12 @@
 from abc import ABCMeta, abstractmethod
 from typing import Union
 from math import pi, atan2
+from win32api import GetCursorPos, GetSystemMetrics
 
 from kivy.core.image import Image
+from kivy.core.window import Window
 from kivy.event import EventDispatcher
-from kivy.graphics import InstructionGroup, PopMatrix, PushMatrix, Rotate, Scale
+from kivy.graphics import InstructionGroup, PopMatrix, PushMatrix, Rotate, Scale, Rectangle, Translate
 from shapely.geometry import Polygon
 
 from .manager import sprite_manager
@@ -38,12 +40,16 @@ class BaseSprite(EventDispatcher, metaclass=ABCMeta):
         self._scale_command = None
         self._angle = angle
         self._rotate_command = None
+        self._translate_command = None
 
     def get_commands(self) -> InstructionGroup:
-        commands = self._get_commands()
+        self._sprite = Rectangle(texture=self._textures[0], size=self._size)
+        commands = InstructionGroup()
+        commands.add(self._sprite)
+
         # TODO: создавать команду только когда она действительно нужна
         if self._angle is not None:
-            self._rotate_command = Rotate(angle=self._angle, origin=(self.x + self.width/2, self.y + self.height/2, 0))
+            self._rotate_command = Rotate(angle=self._angle, origin=(self.width/2, self.height/2, 0))
             commands.insert(0, self._rotate_command)
 
         # TODO: создавать команду только когда она действительно нужна
@@ -52,9 +58,12 @@ class BaseSprite(EventDispatcher, metaclass=ABCMeta):
             commands.insert(0, self._scale_command)
 
         if self._angle is not None or self._scale is not None:
+            self._translate_command = Translate(self._init_pos[0], self._init_pos[1])
+            commands.insert(0, self._translate_command)
             commands.insert(0, PushMatrix())
             commands.add(PopMatrix())
-
+        else:
+            self._sprite.pos = self._init_pos
         return commands
 
     @abstractmethod
@@ -64,14 +73,19 @@ class BaseSprite(EventDispatcher, metaclass=ABCMeta):
     @property
     def _pos(self):
         """Положение спрайта"""
-        if self._sprite:
+        if self._translate_command:
+            return [self._translate_command.x, self._translate_command.y]
+        elif self._sprite:
             return self._sprite.pos
         else:
             return self._init_pos
 
     @_pos.setter
     def _pos(self, pos):
-        if self._sprite:
+        if self._translate_command:
+            self._translate_command.x = pos[0]
+            self._translate_command.y = pos[1]
+        elif self._sprite:
             self._sprite.pos = pos
         else:
             self._init_pos = pos
@@ -100,7 +114,7 @@ class BaseSprite(EventDispatcher, metaclass=ABCMeta):
     def angle(self, angle: Union[int, float]):
         if self._rotate_command:
             self._rotate_command.angle = angle
-            self._rotate_command.origin = (self.x + self.width / 2, self.y + self.height / 2, 0)
+            self._rotate_command.origin = (self.width / 2, self.height / 2, 0)
         else:
             self._angle = angle
 
@@ -141,7 +155,7 @@ class BaseSprite(EventDispatcher, metaclass=ABCMeta):
 
     @right.setter
     def right(self, value: Union[int, float]):
-        self._pos((value - self._size[0], self._pos[1]))
+        self._pos = (value - self._size[0], self._pos[1])
 
     @property
     def y(self) -> Union[int, float]:
@@ -210,7 +224,32 @@ class BaseSprite(EventDispatcher, metaclass=ABCMeta):
 
         self._sprite.texture = self._textures[self._current_texture]
 
-    def rotate_to(self, pos_object):
-        rel_x = pos_object[0] - self._pos[0]
-        rel_y = pos_object[1] - self._pos[1]
+    def rotate_to(self, *pos):
+        """
+        Поворачивает спрайт в сторону переданных координат
+        :param pos:
+        :return:
+        """
+        rel_x = pos[0] - self._pos[0]
+        rel_y = pos[1] - self._pos[1]
+        self.angle = int((180 / pi) * -atan2(rel_x, rel_y) + 90)
+
+    def rotate_to_mouse(self):
+        """
+        Поворачивает спрайт в сторону мыши
+        :param:
+        :return:
+        """
+        # получаем координаты мыши на экране. Точка 0,0 в левом верхнем углу.
+        mouse_pos_x, mouse_pos_y = GetCursorPos()
+        # получаем высоту монитора
+        screen_height = GetSystemMetrics(1)
+
+        # получаем координаты курсора в приложении
+        mouse_pos_x -= Window.left
+        # переводим начало отсчёта координаты высоты вниз экрана
+        mouse_pos_y = -mouse_pos_y + screen_height - Window.top
+
+        rel_x = mouse_pos_x - self._pos[0]
+        rel_y = mouse_pos_y - self._pos[1]
         self.angle = int((180 / pi) * -atan2(rel_x, rel_y) + 90)
