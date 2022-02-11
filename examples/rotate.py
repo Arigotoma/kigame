@@ -10,7 +10,7 @@ def update():
     global speed
 
     if kigame.key.spacebar:
-        alien.rotate_to_mouse()
+        alien.forward(5)
 
     if kigame.key.left:
         alien.angle += 1
