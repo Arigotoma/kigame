@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from typing import Union
-from math import pi, atan2
+from math import pi, atan2, cos, sin
 
 from kivy.core.image import Image
 from kivy.event import EventDispatcher
@@ -47,7 +47,7 @@ class BaseSprite(EventDispatcher, metaclass=ABCMeta):
 
         # TODO: создавать команду только когда она действительно нужна
         if self._angle is not None:
-            self._rotate_command = Rotate(angle=self._angle, origin=(self.width/2, self.height/2, 0))
+            self._rotate_command = Rotate(angle=self._angle, origin=(self.width / 2, self.height / 2, 0))
             commands.insert(0, self._rotate_command)
 
         # TODO: создавать команду только когда она действительно нужна
@@ -231,3 +231,11 @@ class BaseSprite(EventDispatcher, metaclass=ABCMeta):
         rel_x = pos[0] - self._pos[0]
         rel_y = pos[1] - self._pos[1]
         self.angle = int((180 / pi) * -atan2(rel_x, rel_y) + 90)
+
+    def forward(self, pixel_count=1):
+        """
+        Двигает спрайт вперед на pixel_count пикселей.
+        :param pixel_count:
+        """
+        self.x += round(pixel_count * cos(self.angle * pi / 180), 9)
+        self.y += round(pixel_count * sin(self.angle * pi / 180), 9)
